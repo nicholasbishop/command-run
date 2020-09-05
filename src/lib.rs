@@ -187,6 +187,22 @@ impl Command {
         self
     }
 
+    /// Append two arguments.
+    ///
+    /// This is equivalent to calling `add_arg` twice; it is for the
+    /// common case where the arguments have different types, e.g. a
+    /// literal string for the first argument and a `Path` for the
+    /// second argument.
+    pub fn add_arg_pair<S1, S2>(&mut self, arg1: S1, arg2: S2) -> &mut Self
+    where
+        S1: AsRef<OsStr>,
+        S2: AsRef<OsStr>,
+    {
+        self.add_arg(arg1);
+        self.add_arg(arg2);
+        self
+    }
+
     /// Append multiple arguments.
     pub fn add_args<I, S>(&mut self, args: I) -> &mut Self
     where
@@ -357,6 +373,15 @@ mod tests {
             .run()
             .unwrap();
         assert_eq!(out.stdout, b"hello world\n");
+    }
+
+    #[test]
+    fn test_add_arg_variations() {
+        let mut cmd = Command::new("a");
+        cmd.add_arg("b");
+        cmd.add_arg_pair("c", Path::new("d"));
+        cmd.add_args(&["e", "f", "g"]);
+        assert_eq!(cmd.command_line_lossy(), "a b c d e f g");
     }
 
     #[test]
