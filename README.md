@@ -18,7 +18,9 @@ type with a few additional convenient features:
 Other than the standard library, this crate has only one dependency:
 the [`log`] crate. That dependency can be disabled:
 
-    command-run = { version = "*", default-features = false }
+```toml
+command-run = { version = "*", default-features = false }
+```
 
 ## Example
 
