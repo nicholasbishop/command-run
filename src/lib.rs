@@ -112,11 +112,20 @@ impl From<process::Output> for Output {
 }
 
 /// A command to run in a subprocess and options for how it is run.
+///
+/// Some notable trait implementations:
+/// - Derives `Clone`, `Debug`, `Eq`, and `PartialEq`
+/// - `Default` (see docstrings for each field for what the
+///   corresponding default is)
+/// - `From<&Command> for std::process::Command` to convert to a
+///   [`std::process::Command`]
+///
+/// [`std::process::Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Command {
     /// Program path.
     ///
-    /// The path can be just a file name, in which case the $PATH is
+    /// The path can be just a file name, in which case the `$PATH` is
     /// searched.
     pub program: PathBuf,
 
@@ -129,24 +138,24 @@ pub struct Command {
     /// used.
     pub dir: Option<PathBuf>,
 
-    /// If true, log the command before running it. The default is
+    /// If `true`, log the command before running it. The default is
     /// false. This does nothing if the "logging" feature is not
     /// enabled.
     pub log_command: bool,
 
-    /// If true (the default), print the command to stdout before
+    /// If `true` (the default), print the command to stdout before
     /// running it.
     pub print_command: bool,
 
-    /// If true (the default), check if the command exited
+    /// If `true` (the default), check if the command exited
     /// successfully and return an error if not.
     pub check: bool,
 
-    /// If true (the default), capture the stdout and stderr of the
+    /// If `true` (the default), capture the stdout and stderr of the
     /// command.
     pub capture: bool,
 
-    /// If false (the default), inherit environment variables from the
+    /// If `false` (the default), inherit environment variables from the
     /// current process.
     pub clear_env: bool,
 
@@ -217,18 +226,18 @@ impl Command {
 
     /// Run the command.
     ///
-    /// If capture is true, the command's output (stdout and stderr)
-    /// is returned along with the status. If not, the stdout and
-    /// stderr are empty.
+    /// If `capture` is `true`, the command's output (stdout and
+    /// stderr) is returned along with the status. If not, the stdout
+    /// and stderr are empty.
     ///
     /// If the command fails to start an error is returned. If check
     /// is set, an error is also returned if the command exits
     /// non-zero or due to a signal.
     ///
-    /// If log_command and/or print_command is true then the command
-    /// line is logged and/or printed before running it. If the
-    /// command fails the error is not logged or printed, but the
-    /// resulting error type implements Display and can be used for
+    /// If `log_command` and/or `print_command` is true then the
+    /// command line is logged and/or printed before running it. If
+    /// the command fails the error is not logged or printed, but the
+    /// resulting error type implements `Display` and can be used for
     /// this purpose.
     pub fn run(&self) -> Result<Output, Error> {
         let cmd_str = self.command_line_lossy();
