@@ -11,6 +11,7 @@
 //! - The `Command` type can be cloned
 
 use log::info;
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
@@ -99,7 +100,13 @@ pub struct Command {
 
     /// If true, capture the stdout and stderr of the command.
     pub capture: bool,
-    // TODO: add clear_env and env fields
+
+    /// If true, do not inherit environment variables from the current
+    /// process.
+    pub clear_env: bool,
+
+    /// Add or update environment variables in the child process.
+    pub env: HashMap<OsString, OsString>,
 }
 
 impl Command {
@@ -182,6 +189,8 @@ impl Default for Command {
             print_command: true,
             check: true,
             capture: true,
+            clear_env: false,
+            env: HashMap::new(),
         }
     }
 }
@@ -193,6 +202,10 @@ impl From<&Command> for process::Command {
         if let Some(dir) = &cmd.dir {
             out.current_dir(dir);
         }
+        if cmd.clear_env {
+            out.env_clear();
+        }
+        out.envs(&cmd.env);
         out
     }
 }
