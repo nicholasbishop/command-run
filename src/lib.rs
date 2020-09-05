@@ -270,19 +270,21 @@ impl Command {
     /// with [`String::from_utf8_lossy`].
     ///
     /// If any component contains characters that are not ASCII
-    /// alphanumeric, the component is quoted with `'` (single
-    /// quotes). This is both too aggressive (unnecessarily quoting
-    /// things that don't need to be quoted) and incorrect (e.g. a
-    /// single quote will itself be quoted with a single quote). This
-    /// method is mostly intended for logging though, and it should
-    /// work reasonably well for that.
+    /// alphanumeric, `/`, or `-`, the component is quoted with `'`
+    /// (single quotes). This is both too aggressive (unnecessarily
+    /// quoting things that don't need to be quoted) and incorrect
+    /// (e.g. a single quote will itself be quoted with a single
+    /// quote). This method is mostly intended for logging though, and
+    /// it should work reasonably well for that.
     ///
     /// [`String::from_utf8_lossy`]: https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy
     pub fn command_line_lossy(&self) -> String {
         fn convert_word<S: AsRef<OsStr>>(word: S) -> String {
             let s =
                 String::from_utf8_lossy(word.as_ref().as_bytes()).to_string();
-            if s.chars().any(|c| !c.is_ascii_alphanumeric()) {
+            if s.chars()
+                .any(|c| !c.is_ascii_alphanumeric() && c != '-' && c != '/')
+            {
                 format!("'{}'", s)
             } else {
                 s
@@ -369,6 +371,12 @@ mod tests {
         assert_eq!(
             Command::with_args("a b", &["c d", "e"]).command_line_lossy(),
             "'a b' 'c d' e"
+        );
+
+        // Check that dashes and slashes do not cause quoting
+        assert_eq!(
+            Command::with_args("a", &["-b", "/"]).command_line_lossy(),
+            "a -b /"
         );
     }
 }
