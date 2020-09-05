@@ -32,7 +32,7 @@ jobs:
           command: test
 
   test_no_deps:
-    name: Test Suite
+    name: Test Suite (no deps)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +43,8 @@ jobs:
           override: true
       - uses: actions-rs/cargo@v1
         with:
-          command: test --no-default-features
+          command: test
+          args: --no-default-features
 
 
   fmt:
