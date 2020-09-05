@@ -267,4 +267,14 @@ mod tests {
             .unwrap();
         assert_eq!(out.stdout, b"hello world\n");
     }
+
+    #[test]
+    fn test_command_line() {
+        assert_eq!(Command::new("test").command_line_lossy(), "test");
+        assert_eq!(
+            Command::with_args("test", &["hello", "world"])
+                .command_line_lossy(),
+            "test hello world"
+        );
+    }
 }
