@@ -13,10 +13,7 @@ type with a few additional convenient features:
 Example:
 
 ```rust
-let cmd = Command {
-   executable: Path::new("my-command").into(),
-   ..Default::default()
-};
+let cmd = Command::new("my-command");
 // This will return an error if the command did not exit successfully
 // (controlled with the `check` field). The output is captured by
 // default (controlled by the `capture` field).

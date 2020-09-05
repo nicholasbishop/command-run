@@ -20,7 +20,7 @@ use std::{fmt, io, process};
 /// Type of error.
 #[derive(Debug)]
 pub enum ErrorKind {
-    /// The command failed to launch (e.g. if the executable does not
+    /// The command failed to launch (e.g. if the program does not
     /// exist.)
     Launch(io::Error),
 
@@ -74,16 +74,16 @@ impl std::error::Error for Error {}
 /// A command to run in a subprocess and options for how it is run.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Command {
-    /// Executable path.
+    /// Program path.
     ///
     /// The path can be just a file name, in which case the $PATH is
     /// searched.
-    pub executable: PathBuf,
+    pub program: PathBuf,
 
-    /// Arguments passed to the executable.
+    /// Arguments passed to the program.
     pub args: Vec<OsString>,
 
-    /// Directory from which to run the executable.
+    /// Directory from which to run the program.
     ///
     /// If not set (the default), the current working directory is
     /// used.
@@ -114,12 +114,12 @@ pub struct Command {
 }
 
 impl Command {
-    /// Make a new Command with the given executable.
+    /// Make a new Command with the given program.
     ///
     /// All other fields are set to the defaults.
-    pub fn new<S: AsRef<OsStr>>(executable: S) -> Command {
+    pub fn new<S: AsRef<OsStr>>(program: S) -> Command {
         Command {
-            executable: executable.as_ref().into(),
+            program: program.as_ref().into(),
             ..Default::default()
         }
     }
@@ -178,7 +178,7 @@ impl Command {
     pub fn command_line(&self) -> OsString {
         // TODO: add some quoting, e.g. if an arg has a space in it
         let mut out = OsString::new();
-        out.push(&self.executable);
+        out.push(&self.program);
 
         for arg in &self.args {
             out.push(" ");
@@ -196,7 +196,7 @@ impl Command {
 impl Default for Command {
     fn default() -> Self {
         Command {
-            executable: PathBuf::new(),
+            program: PathBuf::new(),
             args: Vec::new(),
             dir: None,
             log_command: false,
@@ -211,7 +211,7 @@ impl Default for Command {
 
 impl From<&Command> for process::Command {
     fn from(cmd: &Command) -> Self {
-        let mut out = process::Command::new(&cmd.executable);
+        let mut out = process::Command::new(&cmd.program);
         out.args(&cmd.args);
         if let Some(dir) = &cmd.dir {
             out.current_dir(dir);
@@ -233,13 +233,13 @@ mod tests {
     fn test_check() {
         // Check, exit zero
         let mut cmd = Command {
-            executable: Path::new("true").into(),
+            program: Path::new("true").into(),
             ..Default::default()
         };
         assert!(cmd.run().is_ok());
 
         // Check, exit non-zero
-        cmd.executable = Path::new("false").into();
+        cmd.program = Path::new("false").into();
         assert!(cmd.run().unwrap_err().is_exit_error());
 
         // No check
