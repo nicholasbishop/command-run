@@ -125,7 +125,8 @@ pub struct Command {
     pub dir: Option<PathBuf>,
 
     /// If true, log the command before running it. The default is
-    /// false.
+    /// false. This does nothing if the "logging" feature is not
+    /// enabled.
     pub log_command: bool,
 
     /// If true (the default), print the command to stdout before
