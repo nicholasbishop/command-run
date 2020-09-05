@@ -1,5 +1,8 @@
 # command-run
 
+[![crates.io](https://img.shields.io/crates/v/command-run.svg)](https://crates.io/crates/command-run)
+[![Documentation](https://docs.rs/command-run/badge.svg)](https://docs.rs/command-run)
+
 Rust library for running a command in a subprocess.
 
 This library is a thin wrapper around the `std::process::Command`
