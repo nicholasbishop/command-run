@@ -25,6 +25,16 @@ pub struct Error {
     pub kind: ErrorKind,
 }
 
+impl Error {
+    pub fn is_launch_error(&self) -> bool {
+        matches!(self.kind, ErrorKind::Launch(_))
+    }
+
+    pub fn is_exit_error(&self) -> bool {
+        matches!(self.kind, ErrorKind::Exit(_))
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match &self.kind {
@@ -159,12 +169,20 @@ mod tests {
     use std::path::Path;
 
     #[test]
-    fn test_basic() {
-        let cmd = Command {
+    fn test_check() {
+        // Check, exit zero
+        let mut cmd = Command {
             executable: Path::new("true").into(),
             ..Default::default()
         };
-        let out = cmd.run().unwrap();
-        assert!(out.status.success());
+        assert!(cmd.run().is_ok());
+
+        // Check, exit non-zero
+        cmd.executable = Path::new("false").into();
+        assert!(cmd.run().unwrap_err().is_exit_error());
+
+        // No check
+        cmd.check = false;
+        assert!(cmd.run().is_ok());
     }
 }
