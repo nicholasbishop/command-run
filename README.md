@@ -8,7 +8,7 @@ type with a few additional convenient features:
 - Print and/or log the command before running it
 - Optionally return an error if the command is not successful
 - The command can be formatted as a command-line string
-- The `Command` type can be cloned
+- The `Command` type can be cloned and its fields are public
 
 Example:
 
