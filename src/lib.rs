@@ -12,7 +12,7 @@
 
 use log::info;
 use std::collections::HashMap;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::{fmt, io, process};
@@ -85,24 +85,28 @@ pub struct Command {
 
     /// Directory from which to run the executable.
     ///
-    /// If not set, the current working directory is used.
+    /// If not set (the default), the current working directory is
+    /// used.
     pub dir: Option<PathBuf>,
 
-    /// If true, log the command before running it.
+    /// If true, log the command before running it. The default is
+    /// false.
     pub log_command: bool,
 
-    /// If true, print the command to stdout before running it.
+    /// If true (the default), print the command to stdout before
+    /// running it.
     pub print_command: bool,
 
-    /// If true, check if the command exited successfully and return
-    /// an error if not.
+    /// If true (the default), check if the command exited
+    /// successfully and return an error if not.
     pub check: bool,
 
-    /// If true, capture the stdout and stderr of the command.
+    /// If true (the default), capture the stdout and stderr of the
+    /// command.
     pub capture: bool,
 
-    /// If true, do not inherit environment variables from the current
-    /// process.
+    /// If false (the default), inherit environment variables from the
+    /// current process.
     pub clear_env: bool,
 
     /// Add or update environment variables in the child process.
@@ -110,6 +114,16 @@ pub struct Command {
 }
 
 impl Command {
+    /// Make a new Command with the given executable.
+    ///
+    /// All other fields are set to the defaults.
+    pub fn new<S: AsRef<OsStr>>(executable: S) -> Command {
+        Command {
+            executable: executable.as_ref().into(),
+            ..Default::default()
+        }
+    }
+
     /// Run the command.
     ///
     /// If capture is true, the command's output (stdout and stderr)
