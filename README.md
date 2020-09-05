@@ -5,18 +5,18 @@
 
 Rust library for running a command in a subprocess.
 
-This library is a thin wrapper around the `std::process::Command`
+This library is a thin wrapper around the [`std::process::Command`]
 type with a few additional convenient features:
 
 - Print and/or log the command before running it
 - Optionally return an error if the command is not successful
 - The command can be formatted as a command-line string
-- The `Command` type can be cloned and its fields are public
+- The [`Command`] type can be cloned and its fields are public
 
 ## Dependencies and features
 
 Other than the standard library, this crate has only one dependency:
-the `log` crate. That dependency can be disabled:
+the [`log`] crate. That dependency can be disabled:
 
     command-run = { version = "*", default-features = false }
 
@@ -30,3 +30,7 @@ let cmd = Command::with_args("echo", &["hello", "world"]);
 let output = cmd.run()?;
 assert_eq!(output.stdout_string_lossy(), "hello world\n");
 ```
+
+[`log`]: https://crates.io/crates/log
+[`std::process::Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
+[`Command`]: https://docs.rs/command-run/latest/command_run/struct.Command.html
