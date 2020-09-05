@@ -2,13 +2,16 @@
 
 //! Utility for running a command in a subprocess.
 //!
-//! The `Command` type is a wrapper around the `std::process::Command`
+//! The [`Command`] type is a wrapper around the [`std::process::Command`]
 //! type that adds a few convenient features:
 //!
 //! - Print and/or log the command before running it
 //! - Optionally return an error if the command is not successful
 //! - The command can be formatted as a command-line string
-//! - The `Command` type can be cloned and its fields are public
+//! - The [`Command`] type can be cloned and its fields are public
+//!
+//! [`Command`]: struct.Command.html
+//! [`std::process::Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -21,14 +24,16 @@ use std::{fmt, io, process};
 #[derive(Debug)]
 pub enum ErrorKind {
     /// The command failed to launch (e.g. if the program does not
-    /// exist.)
+    /// exist).
     Launch(io::Error),
 
     /// The command exited non-zero or due to a signal.
     Exit(process::ExitStatus),
 }
 
-/// Error returned by `Command::run`.
+/// Error returned by [`Command::run`].
+///
+/// [`Command::run`]: struct.Command.html#method.run
 #[derive(Debug)]
 pub struct Error {
     /// The command that caused the error.
@@ -262,7 +267,7 @@ impl Command {
     /// Format as a space-separated command line.
     ///
     /// The program path and the arguments are converted to strings
-    /// with `String::from_utf8_lossy`.
+    /// with [`String::from_utf8_lossy`].
     ///
     /// If any component contains characters that are not ASCII
     /// alphanumeric, the component is quoted with `'` (single
@@ -271,6 +276,8 @@ impl Command {
     /// single quote will itself be quoted with a single quote). This
     /// method is mostly intended for logging though, and it should
     /// work reasonably well for that.
+    ///
+    /// [`String::from_utf8_lossy`]: https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy
     pub fn command_line_lossy(&self) -> String {
         fn convert_word<S: AsRef<OsStr>>(word: S) -> String {
             let s =
