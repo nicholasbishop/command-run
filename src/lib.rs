@@ -11,6 +11,7 @@
 //! - The `Command` type can be cloned
 
 use log::info;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
 use std::os::unix::ffi::OsStrExt;
@@ -70,6 +71,41 @@ impl fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
+
+/// The output of a finished process.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Output {
+    /// The status (exit code) of the process.
+    pub status: process::ExitStatus,
+
+    /// The data that the process wrote to stdout.
+    pub stdout: Vec<u8>,
+
+    /// The data that the process wrote to stderr.
+    pub stderr: Vec<u8>,
+}
+
+impl Output {
+    /// Get stdout as a string.
+    pub fn stdout_string_lossy(&self) -> Cow<str> {
+        String::from_utf8_lossy(&self.stdout)
+    }
+
+    /// Get stderr as a string.
+    pub fn stderr_string_lossy(&self) -> Cow<str> {
+        String::from_utf8_lossy(&self.stderr)
+    }
+}
+
+impl From<process::Output> for Output {
+    fn from(o: process::Output) -> Output {
+        Output {
+            status: o.status,
+            stdout: o.stdout,
+            stderr: o.stderr,
+        }
+    }
+}
 
 /// A command to run in a subprocess and options for how it is run.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -155,7 +191,7 @@ impl Command {
     /// command fails the error is not logged or printed, but the
     /// resulting error type implements Display and can be used for
     /// this purpose.
-    pub fn run(&self) -> Result<process::Output, Error> {
+    pub fn run(&self) -> Result<Output, Error> {
         let cmd_str = self.command_line_lossy();
         if self.log_command {
             info!("{}", cmd_str);
@@ -166,16 +202,18 @@ impl Command {
 
         let mut cmd: process::Command = self.into();
         let out = if self.capture {
-            cmd.output().map_err(|err| Error {
-                command: self.clone(),
-                kind: ErrorKind::Launch(err),
-            })?
+            cmd.output()
+                .map_err(|err| Error {
+                    command: self.clone(),
+                    kind: ErrorKind::Launch(err),
+                })?
+                .into()
         } else {
             let status = cmd.status().map_err(|err| Error {
                 command: self.clone(),
                 kind: ErrorKind::Launch(err),
             })?;
-            process::Output {
+            Output {
                 stdout: Vec::new(),
                 stderr: Vec::new(),
                 status,
