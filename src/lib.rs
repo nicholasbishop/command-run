@@ -278,18 +278,6 @@ impl Command {
     }
 
     /// Format as a space-separated command line.
-    pub fn command_line(&self) -> OsString {
-        let mut out = OsString::new();
-        out.push(&self.program);
-
-        for arg in &self.args {
-            out.push(" ");
-            out.push(arg);
-        }
-        out
-    }
-
-    /// Format as a space-separated command line.
     ///
     /// The program path and the arguments are converted to strings
     /// with [`String::from_utf8_lossy`].
