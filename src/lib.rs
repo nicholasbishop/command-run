@@ -124,6 +124,22 @@ impl Command {
         }
     }
 
+    /// Make a new Command with the given program and args.
+    ///
+    /// All other fields are set to the defaults.
+    pub fn with_args<I, S1, S2>(program: S1, args: I) -> Command
+    where
+        S1: AsRef<OsStr>,
+        S2: AsRef<OsStr>,
+        I: IntoIterator<Item = S2>,
+    {
+        Command {
+            program: program.as_ref().into(),
+            args: args.into_iter().map(|arg| arg.as_ref().into()).collect(),
+            ..Default::default()
+        }
+    }
+
     /// Run the command.
     ///
     /// If capture is true, the command's output (stdout and stderr)
@@ -242,5 +258,13 @@ mod tests {
         // No check
         cmd.check = false;
         assert!(cmd.run().is_ok());
+    }
+
+    #[test]
+    fn test_args() {
+        let out = Command::with_args("echo", &["hello", "world"])
+            .run()
+            .unwrap();
+        assert_eq!(out.stdout, b"hello world\n");
     }
 }
