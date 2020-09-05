@@ -176,6 +176,24 @@ impl Command {
         }
     }
 
+    /// Append a single argument.
+    pub fn add_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> &mut Self {
+        self.args.push(arg.as_ref().into());
+        self
+    }
+
+    /// Append multiple arguments.
+    pub fn add_args<I, S>(&mut self, args: I) -> &mut Self
+    where
+        S: AsRef<OsStr>,
+        I: IntoIterator<Item = S>,
+    {
+        for arg in args {
+            self.add_arg(arg);
+        }
+        self
+    }
+
     /// Run the command.
     ///
     /// If capture is true, the command's output (stdout and stderr)
