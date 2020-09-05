@@ -248,7 +248,6 @@ impl Command {
 
     /// Format as a space-separated command line.
     pub fn command_line(&self) -> OsString {
-        // TODO: add some quoting, e.g. if an arg has a space in it
         let mut out = OsString::new();
         out.push(&self.program);
 
@@ -259,9 +258,35 @@ impl Command {
         out
     }
 
-    /// Format as a space-separated command line and convert to a string.
+    /// Format as a space-separated command line.
+    ///
+    /// The program path and the arguments are converted to strings
+    /// with `String::from_utf8_lossy`.
+    ///
+    /// If any component contains characters that are not ASCII
+    /// alphanumeric, the component is quoted with `'` (single
+    /// quotes). This is both too aggressive (unnecessarily quoting
+    /// things that don't need to be quoted) and incorrect (e.g. a
+    /// single quote will itself be quoted with a single quote). This
+    /// method is mostly intended for logging though, and it should
+    /// work reasonably well for that.
     pub fn command_line_lossy(&self) -> String {
-        String::from_utf8_lossy(self.command_line().as_bytes()).into()
+        fn convert_word<S: AsRef<OsStr>>(word: S) -> String {
+            let s =
+                String::from_utf8_lossy(word.as_ref().as_bytes()).to_string();
+            if s.chars().any(|c| !c.is_ascii_alphanumeric()) {
+                format!("'{}'", s)
+            } else {
+                s
+            }
+        }
+
+        let mut out = convert_word(&self.program);
+        for arg in &self.args {
+            out.push(' ');
+            out.push_str(&convert_word(arg));
+        }
+        out
     }
 }
 
@@ -331,6 +356,11 @@ mod tests {
             Command::with_args("test", &["hello", "world"])
                 .command_line_lossy(),
             "test hello world"
+        );
+
+        assert_eq!(
+            Command::with_args("a b", &["c d", "e"]).command_line_lossy(),
+            "'a b' 'c d' e"
         );
     }
 }
