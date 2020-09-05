@@ -10,7 +10,6 @@
 //! - The command can be formatted as a command-line string
 //! - The `Command` type can be cloned
 
-use log::info;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
@@ -211,8 +210,9 @@ impl Command {
     /// this purpose.
     pub fn run(&self) -> Result<Output, Error> {
         let cmd_str = self.command_line_lossy();
+        #[cfg(feature = "logging")]
         if self.log_command {
-            info!("{}", cmd_str);
+            log::info!("{}", cmd_str);
         }
         if self.print_command {
             println!("{}", cmd_str);
