@@ -5,9 +5,9 @@ authors = ["Nicholas Bishop <nicholasbishop@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/nicholasbishop/command-run"
 license = "Apache-2.0"
-description = "Utility for running a command in a subprocess"
+description = "Library for running a command in a subprocess"
 readme = "README.md"
-keywords = ["command", "run", "cmd"]
+keywords = ["command", "run", "cmd", "subprocess", "process"]
 
 [dependencies]
 log = "0.4"
