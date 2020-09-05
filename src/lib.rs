@@ -26,10 +26,12 @@ pub struct Error {
 }
 
 impl Error {
+    /// Check if the error kind is `Launch`.
     pub fn is_launch_error(&self) -> bool {
         matches!(self.kind, ErrorKind::Launch(_))
     }
 
+    /// Check if the error kind is `Exit`.
     pub fn is_exit_error(&self) -> bool {
         matches!(self.kind, ErrorKind::Exit(_))
     }
@@ -58,12 +60,31 @@ impl std::error::Error for Error {}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Command {
+    /// Executable path.
+    ///
+    /// The path can be just a file name, in which case the $PATH is
+    /// searched.
     pub executable: PathBuf,
+
+    /// Arguments passed to the executable.
     pub args: Vec<OsString>,
+
+    /// Directory from which to run the executable.
+    ///
+    /// If not set, the current working directory is used.
     pub dir: Option<PathBuf>,
+
+    /// If true, log the command before running it.
     pub log_command: bool,
+
+    /// If true, print the command to stdout before running it.
     pub print_command: bool,
+
+    /// If true, check if the command exited successfully and return
+    /// an error if not.
     pub check: bool,
+
+    /// If true, capture the stdout and stderr of the command.
     pub capture: bool,
     // TODO: add clear_env and env fields
 }
