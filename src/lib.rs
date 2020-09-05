@@ -1,3 +1,15 @@
+#![deny(missing_docs)]
+
+//! Utility for running a command in a subprocess.
+//!
+//! The `Command` type is a wrapper around the `std::process::Command`
+//! type that adds a few convenient features:
+//!
+//! - Print and/or log the command before running it
+//! - Optionally return an error if the command is not successful
+//! - The command can be formatted as a command-line string
+//! - The `Command` type can be cloned
+
 use log::info;
 use std::ffi::OsString;
 use std::os::unix::ffi::OsStrExt;
@@ -58,6 +70,7 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+/// A command to run in a subprocess and options for how it is run.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Command {
     /// Executable path.
