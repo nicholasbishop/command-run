@@ -10,7 +10,14 @@ type with a few additional convenient features:
 - The command can be formatted as a command-line string
 - The `Command` type can be cloned and its fields are public
 
-Example:
+## Dependencies and features
+
+Other than the standard library, this crate has only one dependency:
+the `log` crate. That dependency can be disabled:
+
+    command-run = { version = "*", default-features = false }
+
+## Example
 
 ```rust
 let cmd = Command::new("my-command");
