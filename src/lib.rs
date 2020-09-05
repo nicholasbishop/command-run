@@ -232,10 +232,7 @@ mod tests {
     #[test]
     fn test_check() {
         // Check, exit zero
-        let mut cmd = Command {
-            program: Path::new("true").into(),
-            ..Default::default()
-        };
+        let mut cmd = Command::new("true");
         assert!(cmd.run().is_ok());
 
         // Check, exit non-zero
