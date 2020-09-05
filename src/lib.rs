@@ -283,21 +283,27 @@ impl Command {
     /// with [`String::from_utf8_lossy`].
     ///
     /// If any component contains characters that are not ASCII
-    /// alphanumeric, `/`, or `-`, the component is quoted with `'`
-    /// (single quotes). This is both too aggressive (unnecessarily
-    /// quoting things that don't need to be quoted) and incorrect
-    /// (e.g. a single quote will itself be quoted with a single
-    /// quote). This method is mostly intended for logging though, and
-    /// it should work reasonably well for that.
+    /// alphanumeric or in the set `/-,:`, the component is
+    /// quoted with `'` (single quotes). This is both too aggressive
+    /// (unnecessarily quoting things that don't need to be quoted)
+    /// and incorrect (e.g. a single quote will itself be quoted with
+    /// a single quote). This method is mostly intended for logging
+    /// though, and it should work reasonably well for that.
     ///
     /// [`String::from_utf8_lossy`]: https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy
     pub fn command_line_lossy(&self) -> String {
         fn convert_word<S: AsRef<OsStr>>(word: S) -> String {
+            fn char_requires_quoting(c: char) -> bool {
+                if c.is_ascii_alphanumeric() {
+                    return false;
+                }
+                let allowed_chars = "/-,:";
+                !allowed_chars.contains(c)
+            }
+
             let s =
                 String::from_utf8_lossy(word.as_ref().as_bytes()).to_string();
-            if s.chars()
-                .any(|c| !c.is_ascii_alphanumeric() && c != '-' && c != '/')
-            {
+            if s.chars().any(char_requires_quoting) {
                 format!("'{}'", s)
             } else {
                 s
@@ -395,10 +401,10 @@ mod tests {
             "'a b' 'c d' e"
         );
 
-        // Check that dashes and slashes do not cause quoting
+        // Check that some special characters do not cause quoting
         assert_eq!(
-            Command::with_args("a", &["-b", "/"]).command_line_lossy(),
-            "a -b /"
+            Command::with_args("a", &["-/,:"]).command_line_lossy(),
+            "a -/,:"
         );
     }
 }
