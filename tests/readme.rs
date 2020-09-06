@@ -3,8 +3,7 @@
 fn test_readme_example() {
     let source = include_str!("../tests/example.rs");
 
-    // Extract the example code between two comments and trim
-    // leading whitespace
+    // Extract the example code between two comments and de-indent
     let mut example = Vec::new();
     let mut copy = false;
     for line in source.lines() {
@@ -13,7 +12,9 @@ fn test_readme_example() {
         } else if line.contains("End readme example") {
             break;
         } else if copy {
-            example.push(line.trim_start());
+            // De-indent
+            let line = &line[4..];
+            example.push(line);
         }
     }
     let example = example.join("\n");

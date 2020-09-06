@@ -25,12 +25,13 @@ command-run = { version = "*", default-features = false }
 ## Example
 
 ```rust
-let mut cmd = Command::with_args("echo", &["hello", "world"]);
-cmd.capture = true;
 // This will return an error if the command did not exit successfully
 // (controlled with the `check` field).
-let output = cmd.run()?;
+let output = Command::with_args("echo", &["hello", "world"])
+    .enable_capture()
+    .run()?;
 assert_eq!(output.stdout_string_lossy(), "hello world\n");
+// End readme example
 ```
 
 [`log`]: https://crates.io/crates/log
