@@ -31,7 +31,6 @@ let output = Command::with_args("echo", &["hello", "world"])
     .enable_capture()
     .run()?;
 assert_eq!(output.stdout_string_lossy(), "hello world\n");
-// End readme example
 ```
 
 [`log`]: https://crates.io/crates/log
