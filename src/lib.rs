@@ -151,8 +151,8 @@ pub struct Command {
     /// successfully and return an error if not.
     pub check: bool,
 
-    /// If `true` (the default), capture the stdout and stderr of the
-    /// command.
+    /// If `true`, capture the stdout and stderr of the
+    /// command. The default is `false`.
     pub capture: bool,
 
     /// If `false` (the default), inherit environment variables from the
@@ -221,6 +221,12 @@ impl Command {
         for arg in args {
             self.add_arg(arg);
         }
+        self
+    }
+
+    /// Set capture to `true`.
+    pub fn enable_capture(&mut self) -> &mut Self {
+        self.capture = true;
         self
     }
 
@@ -328,7 +334,7 @@ impl Default for Command {
             log_command: false,
             print_command: true,
             check: true,
-            capture: true,
+            capture: false,
             clear_env: false,
             env: HashMap::new(),
         }
@@ -373,6 +379,7 @@ mod tests {
     #[test]
     fn test_args() {
         let out = Command::with_args("echo", &["hello", "world"])
+            .enable_capture()
             .run()
             .unwrap();
         assert_eq!(out.stdout, b"hello world\n");
