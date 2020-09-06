@@ -301,7 +301,7 @@ impl Command {
     /// with [`String::from_utf8_lossy`].
     ///
     /// If any component contains characters that are not ASCII
-    /// alphanumeric or in the set `/-,:.`, the component is
+    /// alphanumeric or in the set `/-,:.=`, the component is
     /// quoted with `'` (single quotes). This is both too aggressive
     /// (unnecessarily quoting things that don't need to be quoted)
     /// and incorrect (e.g. a single quote will itself be quoted with
@@ -315,7 +315,7 @@ impl Command {
                 if c.is_ascii_alphanumeric() {
                     return false;
                 }
-                let allowed_chars = "/-,:.";
+                let allowed_chars = "/-,:.=";
                 !allowed_chars.contains(c)
             }
 
@@ -422,8 +422,8 @@ mod tests {
 
         // Check that some special characters do not cause quoting
         assert_eq!(
-            Command::with_args("a", &["-/,:"]).command_line_lossy(),
-            "a -/,:"
+            Command::with_args("a", &["-/,:.="]).command_line_lossy(),
+            "a -/,:.="
         );
     }
 }
