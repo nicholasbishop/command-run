@@ -224,9 +224,21 @@ impl Command {
         self
     }
 
-    /// Set capture to `true`.
+    /// Set `capture` to `true`.
     pub fn enable_capture(&mut self) -> &mut Self {
         self.capture = true;
+        self
+    }
+
+    /// Set the directory from which to run the program.
+    pub fn set_dir<S: AsRef<OsStr>>(&mut self, dir: S) -> &mut Self {
+        self.dir = Some(dir.as_ref().into());
+        self
+    }
+
+    /// Set `check` to `false`.
+    pub fn disable_check(&mut self) -> &mut Self {
+        self.check = false;
         self
     }
 
