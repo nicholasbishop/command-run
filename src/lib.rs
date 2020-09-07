@@ -5,7 +5,7 @@
 //! The [`Command`] type is a wrapper around the [`std::process::Command`]
 //! type that adds a few convenient features:
 //!
-//! - Print and/or log the command before running it
+//! - Print or log the command before running it
 //! - Optionally return an error if the command is not successful
 //! - The command can be formatted as a command-line string
 //! - The [`Command`] type can be cloned and its fields are public
@@ -111,6 +111,17 @@ impl From<process::Output> for Output {
     }
 }
 
+/// Where log messages go.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum LogTo {
+    /// Print to stdout.
+    Stdout,
+
+    /// Use the standard `log` crate.
+    #[cfg(feature = "logging")]
+    Log,
+}
+
 /// A command to run in a subprocess and options for how it is run.
 ///
 /// Some notable trait implementations:
@@ -138,14 +149,11 @@ pub struct Command {
     /// used.
     pub dir: Option<PathBuf>,
 
-    /// If `true`, log the command before running it. The default is
-    /// false. This does nothing if the "logging" feature is not
-    /// enabled.
-    pub log_command: bool,
+    /// Where log messages go. The default is stdout.
+    pub log_to: LogTo,
 
-    /// If `true` (the default), print the command to stdout before
-    /// running it.
-    pub print_command: bool,
+    /// If `true` (the default), log the command before running it.
+    pub log_command: bool,
 
     /// If `true` (the default), check if the command exited
     /// successfully and return an error if not.
@@ -242,6 +250,16 @@ impl Command {
         self
     }
 
+    /// Log a message at the info level.
+    fn log_info(&self, msg: &str) {
+        match self.log_to {
+            LogTo::Stdout => println!("{}", msg),
+
+            #[cfg(feature = "logging")]
+            LogTo::Log => log::info!("{}", msg),
+        }
+    }
+
     /// Run the command.
     ///
     /// If `capture` is `true`, the command's output (stdout and
@@ -252,19 +270,14 @@ impl Command {
     /// is set, an error is also returned if the command exits
     /// non-zero or due to a signal.
     ///
-    /// If `log_command` and/or `print_command` is true then the
-    /// command line is logged and/or printed before running it. If
-    /// the command fails the error is not logged or printed, but the
-    /// resulting error type implements `Display` and can be used for
-    /// this purpose.
+    /// If `log_command` is `true` then the command line is logged
+    /// before running it. If the command fails the error is not
+    /// logged or printed, but the resulting error type implements
+    /// `Display` and can be used for this purpose.
     pub fn run(&self) -> Result<Output, Error> {
         let cmd_str = self.command_line_lossy();
-        #[cfg(feature = "logging")]
         if self.log_command {
-            log::info!("{}", cmd_str);
-        }
-        if self.print_command {
-            println!("{}", cmd_str);
+            self.log_info(&cmd_str);
         }
 
         let mut cmd: process::Command = self.into();
@@ -343,8 +356,8 @@ impl Default for Command {
             program: PathBuf::new(),
             args: Vec::new(),
             dir: None,
-            log_command: false,
-            print_command: true,
+            log_to: LogTo::Stdout,
+            log_command: true,
             check: true,
             capture: false,
             clear_env: false,
