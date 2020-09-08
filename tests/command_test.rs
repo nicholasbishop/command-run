@@ -86,6 +86,10 @@ impl TestProg {
             tmpdir,
         }
     }
+
+    fn path(&self) -> String {
+        self.tmpdir.path().join("testprog").display().to_string()
+    }
 }
 
 #[test]
@@ -150,16 +154,10 @@ fn test_log() {
 
     assert!(testprog.command.run().unwrap_err().is_exit_error());
 
-    let path = testprog
-        .tmpdir
-        .path()
-        .join("testprog")
-        .display()
-        .to_string();
     assert_eq!(
         CAPTURED_LOGS.get().unwrap().records(),
         vec![
-            (Level::Info, path.clone()),
+            (Level::Info, testprog.path()),
             (
                 Level::Error,
                 format!(
@@ -170,7 +168,29 @@ test-stdout
 stderr:
 test-stderr
 ",
-                    path
+                    testprog.path()
+                )
+            )
+        ]
+    );
+
+    // Re-run the command with combined output
+    CAPTURED_LOGS.get().unwrap().logs.lock().unwrap().clear();
+    testprog.command.combine_output = true;
+    assert!(testprog.command.run().unwrap_err().is_exit_error());
+    assert_eq!(
+        CAPTURED_LOGS.get().unwrap().records(),
+        vec![
+            (Level::Info, testprog.path()),
+            (
+                Level::Error,
+                format!(
+                    "command '{}' failed: exit code: 1
+output:
+test-stdout
+test-stderr
+",
+                    testprog.path()
                 )
             )
         ]
