@@ -1,6 +1,9 @@
-use command_run::Command;
+use command_run::{Command, LogTo};
+use log::{Level, LevelFilter, Metadata, Record};
+use once_cell::sync::OnceCell;
 use std::fs;
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 use tempfile::TempDir;
 
 #[test]
@@ -56,27 +59,108 @@ fn test_command_line() {
     );
 }
 
+struct TestProg {
+    command: Command,
+    tmpdir: TempDir,
+}
+
+impl TestProg {
+    fn new() -> TestProg {
+        let tmpdir = TempDir::new().unwrap();
+
+        // Write the test code to a temporary directory
+        let code = include_str!("testprog.rs");
+        let code_path = tmpdir.path().join("testprog.rs");
+        fs::write(&code_path, code).unwrap();
+
+        // Build the test program
+        let prog_path = tmpdir.path().join("testprog");
+        Command::new("rustc")
+            .add_arg("-o")
+            .add_args(&[&prog_path, &code_path])
+            .run()
+            .unwrap();
+
+        TestProg {
+            command: Command::new(&prog_path),
+            tmpdir,
+        }
+    }
+}
+
 #[test]
 fn test_combine_output() {
-    let tmpdir = TempDir::new().unwrap();
+    let mut testprog = TestProg::new();
+    testprog.command.capture = true;
+    testprog.command.combine_output = true;
 
-    // Build the test program
-    let code = include_str!("testprog.rs");
-    let code_path = tmpdir.path().join("testprog.rs");
-    fs::write(&code_path, code).unwrap();
-
-    let prog_path = tmpdir.path().join("testprog");
-    Command::new("rustc")
-        .add_arg("-o")
-        .add_args(&[&prog_path, &code_path])
-        .run()
-        .unwrap();
-
-    let output = Command::new(&prog_path)
-        .combine_output()
-        .enable_capture()
-        .run()
-        .unwrap();
+    let output = testprog.command.run().unwrap();
     assert_eq!(output.stdout_string_lossy(), "test-stdout\ntest-stderr\n");
     assert_eq!(output.stderr_string_lossy(), "");
+}
+
+#[derive(Debug, Default)]
+struct CapturedLogs {
+    logs: Arc<Mutex<Vec<(Level, String)>>>,
+}
+
+impl CapturedLogs {
+    fn records(&self) -> Vec<(Level, String)> {
+        self.logs.lock().unwrap().clone()
+    }
+}
+
+struct Logger {}
+
+impl log::Log for Logger {
+    fn enabled(&self, _: &Metadata) -> bool {
+        true
+    }
+
+    fn log(&self, record: &Record) {
+        CAPTURED_LOGS
+            .get()
+            .unwrap()
+            .logs
+            .lock()
+            .unwrap()
+            .push((record.level(), record.args().to_string()));
+    }
+
+    fn flush(&self) {}
+}
+
+static LOGGER: Logger = Logger {};
+static CAPTURED_LOGS: OnceCell<CapturedLogs> = OnceCell::new();
+
+#[cfg(feature = "logging")]
+#[test]
+fn test_log() {
+    CAPTURED_LOGS.set(CapturedLogs::default()).unwrap();
+    log::set_logger(&LOGGER)
+        .map(|()| log::set_max_level(LevelFilter::Info))
+        .unwrap();
+
+    let mut testprog = TestProg::new();
+    testprog.command.capture = true;
+    testprog.command.log_command = true;
+    testprog.command.log_output_on_error = true;
+    testprog.command.log_to = LogTo::Log;
+
+    let _output = testprog.command.run().unwrap();
+
+    assert_eq!(
+        CAPTURED_LOGS.get().unwrap().records(),
+        vec![(
+            Level::Info,
+            testprog
+                .tmpdir
+                .path()
+                .join("testprog")
+                .display()
+                .to_string()
+        )]
+    );
+
+    // TODO: need to make this program (optionally?) exit non-zero
 }
