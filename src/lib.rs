@@ -191,6 +191,11 @@ pub struct Command {
     /// If `true` (the default), log the command before running it.
     pub log_command: bool,
 
+    /// If `true`, log the output if the command exits non-zero or due
+    /// to a signal. This does nothing is `capture` is `false` or if
+    /// `check` is `false`. The default is `false`.
+    pub log_output_on_error: bool,
+
     /// If `true` (the default), check if the command exited
     /// successfully and return an error if not.
     pub check: bool,
@@ -337,6 +342,31 @@ impl Command {
             }
         };
         if self.check && !out.status.success() {
+            if self.capture && self.log_output_on_error {
+                let mut msg =
+                    format!("command '{}' failed: {}", cmd_str, out.status);
+                if self.combine_output {
+                    msg = format!(
+                        "{}\noutput:\n{}",
+                        msg,
+                        out.stdout_string_lossy()
+                    );
+                } else {
+                    msg = format!(
+                        "{}\nstdout:\n{}\nstderr:\n{}",
+                        msg,
+                        out.stdout_string_lossy(),
+                        out.stderr_string_lossy()
+                    );
+                }
+                match self.log_to {
+                    LogTo::Stdout => println!("{}", msg),
+
+                    #[cfg(feature = "logging")]
+                    LogTo::Log => log::error!("{}", msg),
+                }
+            }
+
             return Err(Error {
                 command: self.clone(),
                 kind: ErrorKind::Exit(out.status),
@@ -395,6 +425,7 @@ impl Default for Command {
             dir: None,
             log_to: LogTo::Stdout,
             log_command: true,
+            log_output_on_error: false,
             check: true,
             capture: false,
             combine_output: false,
