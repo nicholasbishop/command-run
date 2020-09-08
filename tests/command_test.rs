@@ -93,6 +93,7 @@ fn test_combine_output() {
     let mut testprog = TestProg::new();
     testprog.command.capture = true;
     testprog.command.combine_output = true;
+    testprog.command.check = false;
 
     let output = testprog.command.run().unwrap();
     assert_eq!(output.stdout_string_lossy(), "test-stdout\ntest-stderr\n");
@@ -147,20 +148,31 @@ fn test_log() {
     testprog.command.log_output_on_error = true;
     testprog.command.log_to = LogTo::Log;
 
-    let _output = testprog.command.run().unwrap();
+    assert!(testprog.command.run().unwrap_err().is_exit_error());
 
+    let path = testprog
+        .tmpdir
+        .path()
+        .join("testprog")
+        .display()
+        .to_string();
     assert_eq!(
         CAPTURED_LOGS.get().unwrap().records(),
-        vec![(
-            Level::Info,
-            testprog
-                .tmpdir
-                .path()
-                .join("testprog")
-                .display()
-                .to_string()
-        )]
-    );
+        vec![
+            (Level::Info, path.clone()),
+            (
+                Level::Error,
+                format!(
+                    "command '{}' failed: exit code: 1
+stdout:
+test-stdout
 
-    // TODO: need to make this program (optionally?) exit non-zero
+stderr:
+test-stderr
+",
+                    path
+                )
+            )
+        ]
+    );
 }
