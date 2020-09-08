@@ -296,16 +296,6 @@ impl Command {
         self
     }
 
-    /// Log a message at the info level.
-    fn log_info(&self, msg: &str) {
-        match self.log_to {
-            LogTo::Stdout => println!("{}", msg),
-
-            #[cfg(feature = "logging")]
-            LogTo::Log => log::info!("{}", msg),
-        }
-    }
-
     /// Run the command.
     ///
     /// If `capture` is `true`, the command's output (stdout and
@@ -323,7 +313,12 @@ impl Command {
     pub fn run(&self) -> Result<Output, Error> {
         let cmd_str = self.command_line_lossy();
         if self.log_command {
-            self.log_info(&cmd_str);
+            match self.log_to {
+                LogTo::Stdout => println!("{}", cmd_str),
+
+                #[cfg(feature = "logging")]
+                LogTo::Log => log::info!("{}", cmd_str),
+            }
         }
 
         let mut cmd: process::Command = self.into();
