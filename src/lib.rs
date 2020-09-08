@@ -16,6 +16,7 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
+use std::io::Read;
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::{fmt, io, process};
@@ -125,6 +126,27 @@ impl From<process::Output> for Output {
     }
 }
 
+fn combine_output(mut cmd: process::Command) -> Result<Output, io::Error> {
+    let (mut reader, writer) = os_pipe::pipe()?;
+    let writer_clone = writer.try_clone()?;
+    cmd.stdout(writer);
+    cmd.stderr(writer_clone);
+
+    let mut handle = cmd.spawn()?;
+
+    drop(cmd);
+
+    let mut output = Vec::new();
+    reader.read_to_end(&mut output)?;
+    let status = handle.wait()?;
+
+    Ok(Output {
+        stdout: output,
+        stderr: Vec::new(),
+        status,
+    })
+}
+
 /// Where log messages go.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LogTo {
@@ -176,6 +198,10 @@ pub struct Command {
     /// If `true`, capture the stdout and stderr of the
     /// command. The default is `false`.
     pub capture: bool,
+
+    /// If `true`, send stderr to stdout; the `stderr` field in
+    /// `Output` will be empty. The default is `false.`
+    pub combine_output: bool,
 
     /// If `false` (the default), inherit environment variables from the
     /// current process.
@@ -252,6 +278,12 @@ impl Command {
         self
     }
 
+    /// Set `combine_output` to `true`.
+    pub fn combine_output(&mut self) -> &mut Self {
+        self.combine_output = true;
+        self
+    }
+
     /// Set the directory from which to run the program.
     pub fn set_dir<S: AsRef<OsStr>>(&mut self, dir: S) -> &mut Self {
         self.dir = Some(dir.as_ref().into());
@@ -296,7 +328,11 @@ impl Command {
 
         let mut cmd: process::Command = self.into();
         let out = if self.capture {
-            cmd.output().into_run_error(self)?.into()
+            if self.combine_output {
+                combine_output(cmd).into_run_error(self)?
+            } else {
+                cmd.output().into_run_error(self)?.into()
+            }
         } else {
             let status = cmd.status().into_run_error(self)?;
             Output {
@@ -366,6 +402,7 @@ impl Default for Command {
             log_command: true,
             check: true,
             capture: false,
+            combine_output: false,
             clear_env: false,
             env: HashMap::new(),
         }

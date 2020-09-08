@@ -15,13 +15,15 @@ type with a few additional convenient features:
 
 ## Dependencies and features
 
-Other than the standard library, this crate has only one dependency:
-the [`log`] crate. That dependency can be disabled:
+- `log` - this is an optional dependency. It can be disabled by
+  turning off the `logging` feature:
 
-```toml
-command-run = { version = "*", default-features = false }
-```
+  ```toml
+  command-run = { version = "*", default-features = false }
+  ```
 
+- `os_pipe` - this dependency is used to implement `combine_output`.
+  
 ## Example
 
 ```rust
