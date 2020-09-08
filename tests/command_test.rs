@@ -1,9 +1,57 @@
-use command_run::{Command, LogTo};
-use log::{Level, LevelFilter, Metadata, Record};
-use once_cell::sync::OnceCell;
+#[cfg(feature = "logging")]
+mod capture_logger {
+    use log::{Level, LevelFilter, Metadata, Record};
+    use once_cell::sync::OnceCell;
+    use std::sync::{Arc, Mutex};
+
+    #[derive(Debug, Default)]
+    struct CapturedLogs {
+        logs: Arc<Mutex<Vec<(Level, String)>>>,
+    }
+
+    struct Logger {}
+
+    impl log::Log for Logger {
+        fn enabled(&self, _: &Metadata) -> bool {
+            true
+        }
+
+        fn log(&self, record: &Record) {
+            CAPTURED_LOGS
+                .get()
+                .unwrap()
+                .logs
+                .lock()
+                .unwrap()
+                .push((record.level(), record.args().to_string()));
+        }
+
+        fn flush(&self) {}
+    }
+
+    // TODO: can these be combined?
+    static LOGGER: Logger = Logger {};
+    static CAPTURED_LOGS: OnceCell<CapturedLogs> = OnceCell::new();
+
+    pub fn init() {
+        CAPTURED_LOGS.set(CapturedLogs::default()).unwrap();
+        log::set_logger(&LOGGER)
+            .map(|()| log::set_max_level(LevelFilter::Info))
+            .unwrap();
+    }
+
+    pub fn get_logs() -> Vec<(Level, String)> {
+        CAPTURED_LOGS.get().unwrap().logs.lock().unwrap().clone()
+    }
+
+    pub fn clear_logs() {
+        CAPTURED_LOGS.get().unwrap().logs.lock().unwrap().clear();
+    }
+}
+
+use command_run::Command;
 use std::fs;
 use std::path::Path;
-use std::sync::{Arc, Mutex};
 use tempfile::TempDir;
 
 #[test]
@@ -61,6 +109,9 @@ fn test_command_line() {
 
 struct TestProg {
     command: Command,
+
+    // Allow dead_code when the "logging" feature is off
+    #[allow(dead_code)]
     tmpdir: TempDir,
 }
 
@@ -86,6 +137,8 @@ impl TestProg {
         })
     }
 
+    // Allow dead_code when the "logging" feature is off
+    #[allow(dead_code)]
     fn path(&self) -> String {
         self.tmpdir.path().join("testprog").display().to_string()
     }
@@ -105,47 +158,13 @@ fn test_combine_output() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-#[derive(Debug, Default)]
-struct CapturedLogs {
-    logs: Arc<Mutex<Vec<(Level, String)>>>,
-}
-
-impl CapturedLogs {
-    fn records(&self) -> Vec<(Level, String)> {
-        self.logs.lock().unwrap().clone()
-    }
-}
-
-struct Logger {}
-
-impl log::Log for Logger {
-    fn enabled(&self, _: &Metadata) -> bool {
-        true
-    }
-
-    fn log(&self, record: &Record) {
-        CAPTURED_LOGS
-            .get()
-            .unwrap()
-            .logs
-            .lock()
-            .unwrap()
-            .push((record.level(), record.args().to_string()));
-    }
-
-    fn flush(&self) {}
-}
-
-static LOGGER: Logger = Logger {};
-static CAPTURED_LOGS: OnceCell<CapturedLogs> = OnceCell::new();
-
 #[cfg(feature = "logging")]
 #[test]
 fn test_log() -> Result<(), anyhow::Error> {
-    CAPTURED_LOGS.set(CapturedLogs::default()).unwrap();
-    log::set_logger(&LOGGER)
-        .map(|()| log::set_max_level(LevelFilter::Info))
-        .unwrap();
+    use command_run::LogTo;
+    use log::Level;
+
+    capture_logger::init();
 
     let mut testprog = TestProg::new()?;
     testprog.command.capture = true;
@@ -156,7 +175,7 @@ fn test_log() -> Result<(), anyhow::Error> {
     assert!(testprog.command.run().unwrap_err().is_exit_error());
 
     assert_eq!(
-        CAPTURED_LOGS.get().unwrap().records(),
+        capture_logger::get_logs(),
         vec![
             (Level::Info, testprog.path()),
             (
@@ -176,11 +195,11 @@ test-stderr
     );
 
     // Re-run the command with combined output
-    CAPTURED_LOGS.get().unwrap().logs.lock().unwrap().clear();
+    capture_logger::clear_logs();
     testprog.command.combine_output = true;
     assert!(testprog.command.run().unwrap_err().is_exit_error());
     assert_eq!(
-        CAPTURED_LOGS.get().unwrap().records(),
+        capture_logger::get_logs(),
         vec![
             (Level::Info, testprog.path()),
             (
