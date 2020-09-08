@@ -55,6 +55,20 @@ impl Error {
     }
 }
 
+/// Internal trait for converting an io::Error to an Error.
+trait IntoError<T> {
+    fn into_run_error(self, command: &Command) -> Result<T, Error>;
+}
+
+impl<T> IntoError<T> for Result<T, io::Error> {
+    fn into_run_error(self, command: &Command) -> Result<T, Error> {
+        self.map_err(|err| Error {
+            command: command.clone(),
+            kind: ErrorKind::Run(err),
+        })
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match &self.kind {
@@ -282,17 +296,9 @@ impl Command {
 
         let mut cmd: process::Command = self.into();
         let out = if self.capture {
-            cmd.output()
-                .map_err(|err| Error {
-                    command: self.clone(),
-                    kind: ErrorKind::Run(err),
-                })?
-                .into()
+            cmd.output().into_run_error(self)?.into()
         } else {
-            let status = cmd.status().map_err(|err| Error {
-                command: self.clone(),
-                kind: ErrorKind::Run(err),
-            })?;
+            let status = cmd.status().into_run_error(self)?;
             Output {
                 stdout: Vec::new(),
                 stderr: Vec::new(),
