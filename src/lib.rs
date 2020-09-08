@@ -23,9 +23,9 @@ use std::{fmt, io, process};
 /// Type of error.
 #[derive(Debug)]
 pub enum ErrorKind {
-    /// The command failed to launch (e.g. if the program does not
-    /// exist).
-    Launch(io::Error),
+    /// An error occurred in the calls used to run the command. For
+    /// example, this variant is used if the program does not exist.
+    Run(io::Error),
 
     /// The command exited non-zero or due to a signal.
     Exit(process::ExitStatus),
@@ -44,9 +44,9 @@ pub struct Error {
 }
 
 impl Error {
-    /// Check if the error kind is `Launch`.
-    pub fn is_launch_error(&self) -> bool {
-        matches!(self.kind, ErrorKind::Launch(_))
+    /// Check if the error kind is `Run`.
+    pub fn is_run_error(&self) -> bool {
+        matches!(self.kind, ErrorKind::Run(_))
     }
 
     /// Check if the error kind is `Exit`.
@@ -58,9 +58,9 @@ impl Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match &self.kind {
-            ErrorKind::Launch(err) => write!(
+            ErrorKind::Run(err) => write!(
                 f,
-                "failed to launch '{}': {}",
+                "failed to run '{}': {}",
                 self.command.command_line_lossy(),
                 err
             ),
@@ -285,13 +285,13 @@ impl Command {
             cmd.output()
                 .map_err(|err| Error {
                     command: self.clone(),
-                    kind: ErrorKind::Launch(err),
+                    kind: ErrorKind::Run(err),
                 })?
                 .into()
         } else {
             let status = cmd.status().map_err(|err| Error {
                 command: self.clone(),
-                kind: ErrorKind::Launch(err),
+                kind: ErrorKind::Run(err),
             })?;
             Output {
                 stdout: Vec::new(),
