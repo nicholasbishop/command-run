@@ -22,12 +22,12 @@ fn test_check() {
 }
 
 #[test]
-fn test_args() {
+fn test_args() -> Result<(), anyhow::Error> {
     let out = Command::with_args("echo", &["hello", "world"])
         .enable_capture()
-        .run()
-        .unwrap();
+        .run()?;
     assert_eq!(out.stdout, b"hello world\n");
+    Ok(())
 }
 
 #[test]
@@ -65,26 +65,25 @@ struct TestProg {
 }
 
 impl TestProg {
-    fn new() -> TestProg {
-        let tmpdir = TempDir::new().unwrap();
+    fn new() -> Result<TestProg, anyhow::Error> {
+        let tmpdir = TempDir::new()?;
 
         // Write the test code to a temporary directory
         let code = include_str!("testprog.rs");
         let code_path = tmpdir.path().join("testprog.rs");
-        fs::write(&code_path, code).unwrap();
+        fs::write(&code_path, code)?;
 
         // Build the test program
         let prog_path = tmpdir.path().join("testprog");
         Command::new("rustc")
             .add_arg("-o")
             .add_args(&[&prog_path, &code_path])
-            .run()
-            .unwrap();
+            .run()?;
 
-        TestProg {
+        Ok(TestProg {
             command: Command::new(&prog_path),
             tmpdir,
-        }
+        })
     }
 
     fn path(&self) -> String {
@@ -93,8 +92,8 @@ impl TestProg {
 }
 
 #[test]
-fn test_combine_output() {
-    let mut testprog = TestProg::new();
+fn test_combine_output() -> Result<(), anyhow::Error> {
+    let mut testprog = TestProg::new()?;
     testprog.command.capture = true;
     testprog.command.combine_output = true;
     testprog.command.check = false;
@@ -102,6 +101,8 @@ fn test_combine_output() {
     let output = testprog.command.run().unwrap();
     assert_eq!(output.stdout_string_lossy(), "test-stdout\ntest-stderr\n");
     assert_eq!(output.stderr_string_lossy(), "");
+
+    Ok(())
 }
 
 #[derive(Debug, Default)]
@@ -140,13 +141,13 @@ static CAPTURED_LOGS: OnceCell<CapturedLogs> = OnceCell::new();
 
 #[cfg(feature = "logging")]
 #[test]
-fn test_log() {
+fn test_log() -> Result<(), anyhow::Error> {
     CAPTURED_LOGS.set(CapturedLogs::default()).unwrap();
     log::set_logger(&LOGGER)
         .map(|()| log::set_max_level(LevelFilter::Info))
         .unwrap();
 
-    let mut testprog = TestProg::new();
+    let mut testprog = TestProg::new()?;
     testprog.command.capture = true;
     testprog.command.log_command = true;
     testprog.command.log_output_on_error = true;
@@ -195,4 +196,6 @@ test-stderr
             )
         ]
     );
+
+    Ok(())
 }
