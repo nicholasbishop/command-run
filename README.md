@@ -8,8 +8,10 @@ Rust library for running a command in a subprocess.
 This library is a thin wrapper around the [`std::process::Command`]
 type with a few additional convenient features:
 
-- Print and/or log the command before running it
+- Print or log the command before running it
 - Optionally return an error if the command is not successful
+- Optionally combine stdout and stderr
+- Optionally print the command's output if the command fails
 - The command can be formatted as a command-line string
 - The [`Command`] type can be cloned and its fields are public
 
