@@ -9,9 +9,6 @@
 //! - Optionally return an error if the command is not successful
 //! - The command can be formatted as a command-line string
 //! - The [`Command`] type can be cloned and its fields are public
-//!
-//! [`Command`]: struct.Command.html
-//! [`std::process::Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -33,8 +30,6 @@ pub enum ErrorKind {
 }
 
 /// Error returned by [`Command::run`].
-///
-/// [`Command::run`]: struct.Command.html#method.run
 #[derive(Debug)]
 pub struct Error {
     /// The command that caused the error.
@@ -166,8 +161,6 @@ pub enum LogTo {
 ///   corresponding default is)
 /// - `From<&Command> for std::process::Command` to convert to a
 ///   [`std::process::Command`]
-///
-/// [`std::process::Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Command {
     /// Program path.
@@ -387,8 +380,6 @@ impl Command {
     /// and incorrect (e.g. a single quote will itself be quoted with
     /// a single quote). This method is mostly intended for logging
     /// though, and it should work reasonably well for that.
-    ///
-    /// [`String::from_utf8_lossy`]: https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8_lossy
     pub fn command_line_lossy(&self) -> String {
         fn convert_word<S: AsRef<OsStr>>(word: S) -> String {
             fn char_requires_quoting(c: char) -> bool {
