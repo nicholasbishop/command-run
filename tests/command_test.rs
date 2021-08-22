@@ -181,7 +181,7 @@ fn test_log() -> Result<(), anyhow::Error> {
             (
                 Level::Error,
                 format!(
-                    "command '{}' failed: exit code: 1
+                    "command '{}' failed: exit status: 1
 stdout:
 test-stdout
 
@@ -205,7 +205,7 @@ test-stderr
             (
                 Level::Error,
                 format!(
-                    "command '{}' failed: exit code: 1
+                    "command '{}' failed: exit status: 1
 output:
 test-stdout
 test-stderr
