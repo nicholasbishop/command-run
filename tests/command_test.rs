@@ -102,8 +102,8 @@ fn test_command_line() {
 
     // Check that some special characters do not cause quoting
     assert_eq!(
-        Command::with_args("a", &["-_/,:.="]).command_line_lossy(),
-        "a -_/,:.="
+        Command::with_args("a", &["-_/,:.=+"]).command_line_lossy(),
+        "a -_/,:.=+"
     );
 }
 
