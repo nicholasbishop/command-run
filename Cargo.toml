@@ -1,6 +1,6 @@
 [package]
 name = "command-run"
-version = "1.0.3-alpha.0"
+version = "1.0.3"
 authors = ["Nicholas Bishop <nicholasbishop@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/nicholasbishop/command-run"
