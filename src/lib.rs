@@ -210,7 +210,7 @@ pub struct Command {
 }
 
 impl Command {
-    /// Make a new Command with the given program.
+    /// Make a new `Command` with the given program.
     ///
     /// All other fields are set to the defaults.
     pub fn new<S: AsRef<OsStr>>(program: S) -> Self {
@@ -220,7 +220,7 @@ impl Command {
         }
     }
 
-    /// Make a new Command with the given program and args.
+    /// Make a new `Command` with the given program and args.
     ///
     /// All other fields are set to the defaults.
     pub fn with_args<I, S1, S2>(program: S1, args: I) -> Self
@@ -236,7 +236,7 @@ impl Command {
         }
     }
 
-    /// Create a Command from a whitespace-separated string. If the
+    /// Create a `Command` from a whitespace-separated string. If the
     /// string is empty or all whitespace, `None` is returned.
     ///
     /// This function does not do unquoting or escaping.
