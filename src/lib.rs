@@ -236,6 +236,16 @@ impl Command {
         }
     }
 
+    /// Create a Command from a whitespace-separated string. If the
+    /// string is empty or all whitespace, `None` is returned.
+    ///
+    /// This function does not do unquoting or escaping.
+    pub fn from_whitespace_separated_str(s: &str) -> Option<Command> {
+        let mut parts = s.split_whitespace();
+        let program = parts.next()?;
+        Some(Self::with_args(program, parts))
+    }
+
     /// Append a single argument.
     pub fn add_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> &mut Self {
         self.args.push(arg.as_ref().into());

@@ -70,6 +70,20 @@ fn test_check() {
 }
 
 #[test]
+fn test_split_str() {
+    assert!(Command::from_whitespace_separated_str("").is_none());
+    assert!(Command::from_whitespace_separated_str(" ").is_none());
+    assert_eq!(
+        Command::from_whitespace_separated_str("abc"),
+        Some(Command::new("abc"))
+    );
+    assert_eq!(
+        Command::from_whitespace_separated_str("abc 123 456"),
+        Some(Command::with_args("abc", &["123", "456"]))
+    );
+}
+
+#[test]
 fn test_args() -> Result<(), anyhow::Error> {
     let out = Command::with_args("echo", &["hello", "world"])
         .enable_capture()
