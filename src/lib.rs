@@ -156,11 +156,13 @@ pub enum LogTo {
 /// A command to run in a subprocess and options for how it is run.
 ///
 /// Some notable trait implementations:
-/// - Derives `Clone`, `Debug`, `Eq`, and `PartialEq`
-/// - `Default` (see docstrings for each field for what the
+/// - Derives [`Clone`], [`Debug`], [`Eq`], and [`PartialEq`]
+/// - [`Default`] (see docstrings for each field for what the
 ///   corresponding default is)
 /// - `From<&Command> for std::process::Command` to convert to a
 ///   [`std::process::Command`]
+///
+/// [`Debug`]: std::fmt::Debug
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Command {
     /// Program path.
