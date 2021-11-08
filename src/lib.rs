@@ -213,8 +213,8 @@ impl Command {
     /// Make a new Command with the given program.
     ///
     /// All other fields are set to the defaults.
-    pub fn new<S: AsRef<OsStr>>(program: S) -> Command {
-        Command {
+    pub fn new<S: AsRef<OsStr>>(program: S) -> Self {
+        Self {
             program: program.as_ref().into(),
             ..Default::default()
         }
@@ -223,13 +223,13 @@ impl Command {
     /// Make a new Command with the given program and args.
     ///
     /// All other fields are set to the defaults.
-    pub fn with_args<I, S1, S2>(program: S1, args: I) -> Command
+    pub fn with_args<I, S1, S2>(program: S1, args: I) -> Self
     where
         S1: AsRef<OsStr>,
         S2: AsRef<OsStr>,
         I: IntoIterator<Item = S2>,
     {
-        Command {
+        Self {
             program: program.as_ref().into(),
             args: args.into_iter().map(|arg| arg.as_ref().into()).collect(),
             ..Default::default()
@@ -240,7 +240,7 @@ impl Command {
     /// string is empty or all whitespace, `None` is returned.
     ///
     /// This function does not do unquoting or escaping.
-    pub fn from_whitespace_separated_str(s: &str) -> Option<Command> {
+    pub fn from_whitespace_separated_str(s: &str) -> Option<Self> {
         let mut parts = s.split_whitespace();
         let program = parts.next()?;
         Some(Self::with_args(program, parts))
@@ -420,7 +420,7 @@ impl Command {
 
 impl Default for Command {
     fn default() -> Self {
-        Command {
+        Self {
             program: PathBuf::new(),
             args: Vec::new(),
             dir: None,
