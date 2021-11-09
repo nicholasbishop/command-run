@@ -164,6 +164,7 @@ pub enum LogTo {
 ///
 /// [`Debug`]: std::fmt::Debug
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[must_use]
 pub struct Command {
     /// Program path.
     ///
