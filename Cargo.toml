@@ -1,12 +1,10 @@
 [package]
 name = "command-run"
 version = "1.1.1"
-authors = ["Nicholas Bishop <nicholasbishop@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/nicholasbishop/command-run"
 license = "Apache-2.0"
 description = "Library for running a command in a subprocess"
-readme = "README.md"
 keywords = ["command", "run", "cmd", "subprocess", "process"]
 
 [features]
