@@ -13,7 +13,7 @@ logging = ["log"]
 
 [dependencies]
 log = { version = "0.4.14", optional = true }
-os_pipe = "0.9.2"
+os_pipe = "1.0.0"
 
 [dev-dependencies]
 anyhow = "1.0.45"
