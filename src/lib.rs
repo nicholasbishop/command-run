@@ -1,4 +1,7 @@
 #![deny(missing_docs)]
+// This library is not likely to be used in a context where a 144 byte
+// error type is a meaningful performance problem.
+#![allow(clippy::result_large_err)]
 
 //! Utility for running a command in a subprocess.
 //!
