@@ -6,6 +6,8 @@ on:
   schedule:
     - cron: '0 0 * * 0'
 
+name: CI
+
 jobs:
   check:
     runs-on: ubuntu-latest
