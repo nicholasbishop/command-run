@@ -17,7 +17,6 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
 use std::io::Read;
-use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::{fmt, io, process};
 
@@ -387,7 +386,7 @@ impl Command {
     /// Format as a space-separated command line.
     ///
     /// The program path and the arguments are converted to strings
-    /// with [`String::from_utf8_lossy`].
+    /// with [`OsStr::to_string_lossy`].
     ///
     /// If any component contains characters that are not ASCII
     /// alphanumeric or in the set `/-_,:.=+`, the component is
@@ -407,7 +406,7 @@ impl Command {
             }
 
             let s =
-                String::from_utf8_lossy(word.as_ref().as_bytes()).to_string();
+                word.as_ref().to_string_lossy().to_string();
             if s.chars().any(char_requires_quoting) {
                 format!("'{}'", s)
             } else {
