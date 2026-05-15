@@ -124,7 +124,7 @@ impl From<process::Output> for Output {
 }
 
 fn combine_output(mut cmd: process::Command) -> Result<Output, io::Error> {
-    let (mut reader, writer) = os_pipe::pipe()?;
+    let (mut reader, writer) = io::pipe()?;
     let writer_clone = writer.try_clone()?;
     cmd.stdout(writer);
     cmd.stderr(writer_clone);

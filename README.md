@@ -23,8 +23,6 @@ type with a few additional convenient features:
   ```toml
   command-run = { version = "*", default-features = false }
   ```
-
-- `os_pipe` - this dependency is used to implement `combine_output`.
   
 ## Example
 
