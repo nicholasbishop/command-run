@@ -7,6 +7,19 @@ on:
 name: CI
 
 jobs:
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: Swatinem/rust-cache@v2
+      - run: |
+          # Extract the MSRV from Cargo.toml.
+          msrv=$(cargo metadata --no-deps --format-version=1 | jq --raw-output '.packages[] | select(.name == "command-run") | .rust_version')
+
+          rustup toolchain install ${msrv} --profile minimal --no-self-update
+          cargo +${msrv} build
+          cargo +${msrv} test
+
   check:
     runs-on: ubuntu-latest
     steps:
