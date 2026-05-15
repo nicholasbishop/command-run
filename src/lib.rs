@@ -405,8 +405,7 @@ impl Command {
                 !allowed_chars.contains(c)
             }
 
-            let s =
-                word.as_ref().to_string_lossy().to_string();
+            let s = word.as_ref().to_string_lossy().to_string();
             if s.chars().any(char_requires_quoting) {
                 format!("'{}'", s)
             } else {
