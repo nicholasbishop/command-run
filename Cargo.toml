@@ -1,7 +1,7 @@
 [package]
 name = "command-run"
 version = "1.1.2"
-edition = "2021"
+edition = "2024"
 repository = "https://github.com/nicholasbishop/command-run"
 license = "Apache-2.0"
 description = "Library for running a command in a subprocess"
