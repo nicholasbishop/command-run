@@ -104,12 +104,12 @@ pub struct Output {
 
 impl Output {
     /// Get stdout as a string.
-    pub fn stdout_string_lossy(&self) -> Cow<str> {
+    pub fn stdout_string_lossy(&self) -> Cow<'_, str> {
         String::from_utf8_lossy(&self.stdout)
     }
 
     /// Get stderr as a string.
-    pub fn stderr_string_lossy(&self) -> Cow<str> {
+    pub fn stderr_string_lossy(&self) -> Cow<'_, str> {
         String::from_utf8_lossy(&self.stderr)
     }
 }
